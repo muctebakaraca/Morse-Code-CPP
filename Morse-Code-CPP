@@ -1,0 +1,144 @@
+/*
+    The purpose of this program is to take as input from the user a file of text and an output file. Afterward, it converts the text file 
+    into morse code and outputs it to the output file. Also, it accurately splits a file containing the morse alphabet into an array of 
+    morse code.
+*/
+// Includes any possibly relavant libraries using the standard namespace.
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <cmath>
+#include <string>
+using namespace std;
+
+// The boolean function that returns whether or not the morse code file was correctly split into the array.
+// Takes as parameters a string array of morse letters and an ifstream for the fileOfMorse.
+bool loadMorseArray(string morseLetters[], ifstream& fileOfMorse) 
+{
+    // Defines necessary variables and their defaults.
+    string letter, morse;
+    int position = 0;
+
+    // While there are lines in the file, proceeds.
+    while (fileOfMorse >> letter >> morse) 
+    {
+        // Changes the position-nth entry of morseLetters into the extracted morse equivalent. 
+        morseLetters[position] = {morse};
+        // Increments the position.
+        position++;
+    }
+
+    // Decides if the correct number of array entries were made.
+    if (position == 26) 
+    {
+        // Returns true if there were.
+        return true;
+    }
+    else 
+    {
+        // Returns false if there were not.
+        return false;
+    }
+}
+
+// The void function which handles the major part of the conversion.
+// Takes as input the current line as reference, a constant string that is the line we are currently at, and the morseLetters array previously defined.
+void genMorse(string &currentFileChanged, const string currentLine, const string morseLetters[])
+{
+    // Iterates through the characters that make up the currentLine string.
+    for (char currentChar : currentLine) 
+    {
+        // If it is a space, period, or endl, copies it to the currentFileChanged variable as is.
+        if (currentChar == ' ') 
+        {
+            currentFileChanged += " ";
+        }
+        else if (currentChar == '.') 
+        {
+            currentFileChanged += ".";
+        }
+        else if (currentChar == '\n')
+        {
+            currentFileChanged += "\n";
+        }
+        // Otherwise, makes the necessary conversion and adds its to the string currentFileChanged.
+        else 
+        {
+            currentFileChanged += morseLetters[currentChar % 'A'] + " ";
+        }
+    }
+    // Does not return anything as it is a void function.
+}
+
+// The main function of our program.
+int main() 
+{
+    // Makes the string array for the morseLetters.
+    string morseLetters[26];
+    // Defines the line counter.
+    int lines = 0;
+    // Defines necessary string variables.
+    string outputFileName, inputFileName, currentFileChanged, currentLine;
+    const string fileCh;
+
+    // Takes as input the name of the input file.
+    cout << "Enter the name of the input file: ";
+    cin >> inputFileName;   
+
+    // Attempts to open the file.
+    ifstream input(inputFileName);
+    ifstream morseInputFile("morseLetters.txt");
+
+    // Takes as input the name of the output file.
+    cout << "Enter the name of the output file: ";
+    cin >> outputFileName;
+
+    // Makes the ofstream variable for the output file.
+    ofstream output(outputFileName);
+    
+    // If the input file did not open previously, raises error.
+    if (!input.is_open())
+    {
+        cout << "\nError, unable to open file " << inputFileName << "." << endl;
+        input.close();
+    }
+    // If the input file did open, proceeds.
+    else 
+    {
+        // If the loadMorseArray function returns false, raises error.
+        if (!loadMorseArray(morseLetters, morseInputFile))
+        {
+            cout << "Error, unable to load Morse codes from file." << endl;
+            morseInputFile.close();
+            output.close();
+        }
+        // Otherwise, proceeds.
+        else 
+        {
+            // While there is data to be read, proceeds.
+            while (getline(input, currentLine))
+            {
+                // Calls the morse converter function.
+                genMorse(currentFileChanged, currentLine, morseLetters);
+                // Outputs the changed line to the output file.
+                output << currentFileChanged << endl;
+                // Resets the current line string.
+                currentFileChanged = "";
+                // Iterates the lines.
+                lines++;
+            }
+            // If there are lines, proceeds.
+            if (lines > 0) 
+            {
+                cout << "Translation complete. " << lines << " lines translated." << endl;
+            }
+        }
+    }
+    
+    // Closes the files.
+    input.close();
+    output.close();
+
+    // Returns 0.
+    return 0;
+}
